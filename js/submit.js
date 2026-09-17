@@ -202,19 +202,33 @@ submitButton.innerHTML =
 '<span>Sending...</span>';
 }
 try {
-const data = new FormData(form);
-// Remove the visual picker/hidden inputs.
-data.delete("assignmentFilePicker");
-data.delete("assignmentFile");
-data.delete("assignmentFiles");
-// Add every selected file under the exact backend field name.
+/*
+ * Build the multipart body explicitly.
+ * This avoids relying on the browser's native file input state after
+ * the picker has been cleared by the attachment UI.
+ */
+const data = new FormData();
+
+new FormData(form).forEach(function (value, key) {
+if (key !== "assignmentFiles" &&
+    key !== "assignmentFilePicker" &&
+    key !== "assignmentFile") {
+data.append(key, value);
+}
+});
+
+data.set("order_id", orderId);
+
 selectedFiles.forEach(function (file) {
 data.append("assignmentFiles", file, file.name);
 });
-data.set("order_id", orderId);
+
 const response = await fetch("/api/submissions", {
 method: "POST",
-body: data
+body: data,
+headers: {
+"Accept": "application/json"
+}
 });
 let result = {};
 try {

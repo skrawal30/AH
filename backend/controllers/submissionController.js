@@ -332,13 +332,9 @@ async function createSubmission(req, res) {
     message
   } = req.body || {};
 
-  const uploaded = req.files || {};
-
-  const files = [
-    ...(uploaded.assignmentFiles || []),
-    ...(uploaded.attachments || []),
-    ...(uploaded.assignmentFilePicker || [])
-  ];
+  // receiveFiles() uses upload.array("assignmentFiles"), so req.files
+  // is already the complete attachment array.
+  const files = Array.isArray(req.files) ? req.files : [];
 
   if (
     !String(name || "").trim() ||
